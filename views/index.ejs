@@ -1,11 +1,147 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>HIIII</h1>
-</body>
-</html>
+<% layout('layouts/boilerplate') -%> 
+<style>
+    #toolbar {
+        /* display: flex;
+        flex-direction: column; */
+     
+        background-color: #202020;
+    }
+    .hidden{
+        display: none;
+    }
+</style>
+
+<h1 class="heading-2 mx-auto mb-3">Digit Guesser</h1>
+<div class="row" style="width: 100%;" >
+    <div class="col-md-6 col-12" style="width: 500px;">
+        <div id="toolbar"  class="card mx-auto">
+            <canvas id="drawing-board" style="width: 500px; height: 500px;" class="my-2 "></canvas>
+            
+        </div>
+        <button class="btn btn-danger my-2" id="clear">Clear</button>
+        <button class="btn btn-primary my-2" id="export">Guess</button>
+    
+    </div>
+    <div class="col-md-6 col-12" >
+        <div class=" guess-div">
+          <div class="card-body ">
+            <h3 class="card-title fw-bold">My Guess: <span class="fw-normal fs-2" id="guess">--</span> <div class="d-block"><img src="./images/loading.gif" alt=""/></div> </h3>
+          </div>
+          
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+    const canvas = document.getElementById('drawing-board');
+    const ctx = canvas.getContext('2d');
+    const guessDiv=document.querySelector(".guess-div");
+    const guess=document.querySelector("#guess")
+    // guessDiv.classList.add("hidden")
+    canvas.width = canvas.offsetWidth; // Set canvas width to match the container
+    canvas.height = canvas.offsetHeight; // Set canvas height to match the container
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round'; // Sets the line join style to rounded corners
+
+    ctx.strokeStyle = 'white'; // Set stroke color to white
+    ctx.lineWidth = 25; // Set line width to 20
+
+    // Set the line style to dashed
+    ctx.setLineDash([0, 0]); // 10 pixels drawn, 5 pixels empty
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let isVisible=false;
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', () => (isDrawing = false));
+    canvas.addEventListener('mouseout', () => (isDrawing = false));
+
+    function draw(e) {
+        if (!isDrawing) return;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    const clearButton = document.getElementById('clear');
+    clearButton.addEventListener('click', () => {
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // guessDiv.classList.add("hidden")
+        guess.textContent="--"
+    });
+
+    const exportButton = document.getElementById('export');
+    const exportedImage = document.getElementById('exported-image');
+    exportButton.addEventListener('click', () => {
+        // Convert canvas to data URL
+        const imageUrl=canvas.toDataURL();
+        
+       (async()=>{
+        const result=await fetchDigit(imageUrl);
+        // guessDiv.classList.remove("hidden")
+        guess.textContent=result.digit;
+        console.log(result)
+       })()
+    });
+
+
+    const fetchDigit = async (imageUrl) => {
+        try {
+            const response = await fetch('http://localhost:8080/fetch-digit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: imageUrl }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const responseText = await response.json();
+            
+            const result = JSON.parse(responseText); // Parse the response text into a JavaScript object
+            return result;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    };
+    function getRandomNumber() {
+        // Generate a random number between 0 (inclusive) and 10 (exclusive)
+        return Math.floor(Math.random() * 10);
+    }
+
+    const guessAnimation=(guessSpan)=>{
+        
+    }
+
+    async function updateFrontend(imageUrl) {
+        const guessDiv = document.querySelector(".guess-div");
+
+        guessDiv.classList.remove("hidden");
+
+        try {
+            const prediction = await fetchDigit(imageUrl);
+            return prediction
+        } catch (error) {
+            console.error(error);
+            return null
+        }
+    }
+
+</script>

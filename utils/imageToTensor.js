@@ -2,16 +2,19 @@ const tf=require("@tensorflow/tfjs-node");
 const fs=require("fs").promises;
 const sharp=require("sharp");
 
-module.exports=async function imageToTensor(imgPath,width,height){
+module.exports=async function imageToTensor(imageBuffer,width,height){
     try {
         // Read and decode the image using sharp
-        const imageBuffer = await fs.readFile(imgPath);
+        
         const decodedImage = await sharp(imageBuffer)
           .resize(width,height)
-          .toColorspace('b-w') // Resize the image as needed
+          .toColorspace('b-w')
+          .flatten()// Resize the image as needed
           .toBuffer();
-    
-        // Convert the decoded image to a tensor
+        sharp(decodedImage).toFile("D:\\UNIVERSITY_WORKS\\DL\\project\\test\\drawingSamples\\test.jpg",(err, info) => {
+          if (err) {
+            console.error(err);
+          }} )
         const tensor = tf.node.decodeImage(decodedImage);
         
         return tensor;

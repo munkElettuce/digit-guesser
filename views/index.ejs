@@ -15,7 +15,7 @@
 <div class="row" style="width: 100%;" >
     <div class="col-md-6 col-12" style="width: 500px;">
         <div id="toolbar"  class="card mx-auto">
-            <canvas id="drawing-board" style="width: 500px; height: 500px;" class="my-2 "></canvas>
+            <canvas id="drawing-board" style="width: 500px; height: 400px;" class="my-2 "></canvas>
             
         </div>
         <button class="btn btn-danger my-2" id="clear">Clear</button>
@@ -90,10 +90,12 @@
         const imageUrl=canvas.toDataURL();
         
        (async()=>{
-        const result=await fetchDigit(imageUrl);
-        // guessDiv.classList.remove("hidden")
-        guess.textContent=result.digit;
-        console.log(result)
+            const result=await fetchDigit(imageUrl);
+            const isSaved=await createDataset(imageUrl)
+            console.log(isSaved)
+            // guessDiv.classList.remove("hidden")
+            guess.textContent=result.digit;
+            
        })()
     });
 
@@ -121,6 +123,9 @@
             return null;
         }
     };
+
+    
+
     function getRandomNumber() {
         // Generate a random number between 0 (inclusive) and 10 (exclusive)
         return Math.floor(Math.random() * 10);

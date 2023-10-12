@@ -1,0 +1,124 @@
+<% layout('layouts/boilerplate') -%> 
+<style>
+    #toolbar {
+        /* display: flex;
+        flex-direction: column; */
+     
+        background-color: #202020;
+    }
+    .hidden{
+        display: none;
+    }
+</style>
+
+<h1 class="heading-2 mx-auto mb-3">Digit Guesser</h1>
+<div class="row " style="width: 100%; " >
+    <div class="col-md-6 col-12" style="width: 500px;">
+        <div id="toolbar"  class="card mx-auto">
+            <canvas id="drawing-board" style="width: 500px; height: 400px;" class="my-2 "></canvas>
+            
+        </div>
+        
+            <div class="mb-3">
+                <label for="predict" class="form-label">Number</label>
+                <input type="number" class="form-control" id="predict" min="-1" max="9">
+              </div>
+            <button class="btn btn-danger my-2" id="clear">Clear</button>
+            <button class="btn btn-primary my-2" id="export">Guess</button>
+
+    </div>
+    
+</div>
+
+
+
+
+<script>
+    const canvas = document.getElementById('drawing-board');
+    const number=document.querySelector("#predict")
+    const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth; // Set canvas width to match the container
+    canvas.height = canvas.offsetHeight; // Set canvas height to match the container
+
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round'; // Sets the line join style to rounded corners
+
+    ctx.strokeStyle = 'white'; // Set stroke color to white
+    ctx.lineWidth = 25; // Set line width to 20
+
+    // Set the line style to dashed
+    ctx.setLineDash([0, 0]); // 10 pixels drawn, 5 pixels empty
+
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let isVisible=false;
+    canvas.addEventListener('mousedown', (e) => {
+        isDrawing = true;
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', () => (isDrawing = false));
+    canvas.addEventListener('mouseout', () => (isDrawing = false));
+    function draw(e) {
+        if (!isDrawing) return;
+        ctx.beginPath();
+        ctx.moveTo(lastX, lastY);
+        ctx.lineTo(e.offsetX, e.offsetY);
+        ctx.stroke();
+        [lastX, lastY] = [e.offsetX, e.offsetY];
+    }
+
+    const clearButton = document.getElementById('clear');
+    clearButton.addEventListener('click', () => {
+        // Clear the canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // number.value=-1
+    });
+
+    const exportButton = document.getElementById('export');
+    const exportedImage = document.getElementById('exported-image');
+    exportButton.addEventListener('click', () => {
+        // Convert canvas to data URL
+        const imageUrl=canvas.toDataURL();
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+       (async()=>{
+            const num=document.querySelector("#predict");
+            const isSaved=await createDataset(imageUrl,num.value)
+            //clear the canvas
+            //flash a message if successful
+            
+       })()
+    });
+
+
+    
+
+    const createDataset = async (imageUrl,num) => {
+        try {
+            const response = await fetch('http://localhost:8080/create-dataset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: imageUrl, number:num }),
+            });
+            
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+
+            const responseText = await response.json();
+            
+            const result = JSON.parse(responseText); // Parse the response text into a JavaScript object
+            return result;
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
+    };
+
+   
+
+</script>

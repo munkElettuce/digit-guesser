@@ -15,7 +15,7 @@ const saveImage=require("./utils/saveImage");
 const createCSV=require("./utils/createCSV")
 
 // const datasetPath="D:\\UNIVERSITY_WORKS\\DL\\project\\data\\images";
-const datasetPath="./data/images"
+
 const modelPath="file://models/json/model.json";
 
 
@@ -42,7 +42,6 @@ app.post("/fetch-digit",async(req,res)=>{
 
     imageTensor=imageTensor.expandDims(0)
     const predictions=await predict(modelPath,imageTensor)
-
     res.json(JSON.stringify(predictions))
 })
 
@@ -52,19 +51,31 @@ app.get("/create",(req,res)=>{
 
 
 app.post("/create-dataset",async(req,res)=>{
+    const folders=['img-1','img-2']
 
     const {image,number}=req.body;
     const csvPath="./data/csv/own-mnist.csv"
-    const imageCount=await countImages(datasetPath);//for indexing the dataset imgs
-    let img=`${datasetPath}/img_${imageCount}.jpg`
-    console.log(`no of images: ${imageCount}`)
-    const imageBuffer=getImageBuffer(image)
-    const isSaved=saveImage(imageBuffer,50,50,img);
+    const datasetPath=`./data/images/`
 
+    let imageCount=await countImages(`${datasetPath}${folders[0]}`);//for indexing the dataset imgs
+    
+    
+    let isCreated=false; 
+    let isSaved=false;
 
-    const isCreated=createCSV(csvPath,`img_${imageCount}.jpg`,number)
+    if(imageCount>300){
+        imageCount=await countImages(`${datasetPath}${folders[1]}`)
+        const imageBuffer=getImageBuffer(image)
+        isSaved=saveImage(imageBuffer,50,50,`${datasetPath}${folders[1]}/img_${imageCount}.jpg`);
+        isCreated=createCSV(csvPath,`data/csv/images/${folders[1]}/img_${imageCount}.jpg`,number);
+    }else{
+        const imageBuffer=getImageBuffer(image)
+        isSaved=saveImage(imageBuffer,50,50,`${datasetPath}${folders[0]}/img_${imageCount}.jpg`);
+        isCreated=createCSV(csvPath,`data/images/${folders[0]}/img_${imageCount}.jpg`,number)
+    }
+    
     if(isSaved && isCreated){
-        res.json("DONEEe")
+        res.json("DONEE")
     }else{
         res.json("OOPSIES")
     }

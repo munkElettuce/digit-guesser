@@ -16,7 +16,7 @@ const createCSV=require("./utils/createCSV")
 
 // const datasetPath="D:\\UNIVERSITY_WORKS\\DL\\project\\data\\images";
 
-const modelPath="file://models/json/model.json";
+const modelPath="file://data/js_model/model.json";
 
 
 
@@ -38,8 +38,8 @@ app.get("/", (req, res) => {
 app.post("/fetch-digit",async(req,res)=>{
     const imageData=req.body.image
     const imageBuffer=getImageBuffer(imageData)
-    let imageTensor=await imageToTensor(imageBuffer,28,28)
-
+    let imageTensor=await imageToTensor(imageBuffer,50,50)
+    
     imageTensor=imageTensor.expandDims(0)
     const predictions=await predict(modelPath,imageTensor)
     res.json(JSON.stringify(predictions))
@@ -62,17 +62,18 @@ app.post("/create-dataset",async(req,res)=>{
     
     let isCreated=false; 
     let isSaved=false;
-
+    
     if(imageCount>300){
         imageCount=await countImages(`${datasetPath}${folders[1]}`)
         const imageBuffer=getImageBuffer(image)
         isSaved=saveImage(imageBuffer,50,50,`${datasetPath}${folders[1]}/img_${imageCount}.jpg`);
-        isCreated=createCSV(csvPath,`data/csv/images/${folders[1]}/img_${imageCount}.jpg`,number);
+        isCreated=createCSV(csvPath,`data/images/${folders[1]}/img_${imageCount}.jpg`,number);
     }else{
         const imageBuffer=getImageBuffer(image)
         isSaved=saveImage(imageBuffer,50,50,`${datasetPath}${folders[0]}/img_${imageCount}.jpg`);
         isCreated=createCSV(csvPath,`data/images/${folders[0]}/img_${imageCount}.jpg`,number)
     }
+
     
     if(isSaved && isCreated){
         res.json("DONEE")

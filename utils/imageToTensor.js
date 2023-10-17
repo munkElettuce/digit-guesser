@@ -8,8 +8,8 @@ module.exports=async function imageToTensor(imageBuffer,width,height){
         
         const decodedImage = await sharp(imageBuffer)
           .resize(width,height)
-          .toColorspace('b-w')
-          .flatten()// Resize the image as needed
+          .toColorspace('srgb')
+          .removeAlpha() 
           .toBuffer();
         sharp(decodedImage).toFile("D:\\UNIVERSITY_WORKS\\DL\\project\\test\\drawingSamples\\test.jpg",(err, info) => {
           if (err) {
